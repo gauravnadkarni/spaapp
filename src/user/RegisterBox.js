@@ -1,11 +1,13 @@
 import React from 'react';
-import { Button, 
-        Col, 
-        Form, 
-        Container, 
-        Row, 
-        Card, 
-        Alert } from 'react-bootstrap';
+import {
+    Button,
+    Col,
+    Form,
+    Container,
+    Row,
+    Card,
+    Alert
+} from 'react-bootstrap';
 import axios from 'axios';
 import './register_box.css';
 
@@ -13,63 +15,78 @@ class RegisterBox extends React.Component {
     constructor(props) {
         super(props);
         this.state = this.initialState = {
-            userData :{
+            userData: {
                 email: '',
                 password: '',
                 firstName: '',
                 lastName: ''
             },
-            isFormSubitted : false,
-            isUserRegistered : false,
-            message:''
+            isFormSubitted: false,
+            isUserRegistered: false,
+            validationErrors: [],
+            message: ''
+
         }
         this.handleChange = this.handleChange.bind(this);
         this.registerUser = this.registerUser.bind(this);
     }
 
     handleChange(event) {
-        this.setState({ userData :{...this.state.userData,[event.target.name]: event.target.value }});
+        this.setState({ userData: { ...this.state.userData, [event.target.name]: event.target.value } });
     }
 
     registerUser(event) {
         let obj = this;
-        obj.setState({isFormSubitted:true});
+        obj.setState({ isFormSubitted: true });
         event.preventDefault();
-        axios.post('http://localhost:3535/users/register',obj.state.userData,{headers:{"Content-Type":"application/json"}}).then((response) =>{
-            if(response.status === 201){
-                obj.setState({message:'User Registered Successfully'})
-                obj.setState({isUserRegistered:true});
-                setTimeout(()=>{
-                    obj.setState({isUserRegistered:false});
-                },5000);
+        axios.post('http://localhost:3535/users/register', obj.state.userData, { headers: { "Content-Type": "application/json" } }).then((response) => {
+            if (response.status === 201) {
+                obj.setState({ message: 'User Registered Successfully' })
+                obj.setState({ isUserRegistered: true });
+                setTimeout(() => {
+                    obj.setState({ isUserRegistered: false });
+                }, 5000);
             }
-        }).catch((error)=>{ 
-            console.log(error);
-            console.log('error catch');
-        }).finally(()=>{
-            obj.setState({userData : obj.initialState.userData});
+        }).catch((error) => {
+            if (error.response.status === 400) {
+                obj.setState({ validationErrors: error.response.data.errors })
+            }
+        }).finally(() => {
+            obj.setState({ userData: obj.initialState.userData });
         });
     }
 
     render() {
         let alert = null;
-        if(this.state.isUserRegistered === true) {
+        if (this.state.isUserRegistered === true) {
             alert = <Row className="justify-content-md-center">
-                        <Col md={5}>
-                            <Alert key="alert_success" variant="primary">
-                                {this.state.message}
-                            </Alert>
-                        </Col>
-                    </Row>
+                <Col md={5}>
+                    <Alert key="alert_success" variant="primary">
+                        {this.state.message}
+                    </Alert>
+                </Col>
+            </Row>
+        } else if (this.state.validationErrors.length !== 0) {
+            console.log(this.state.validationErrors);
+            let temp = this.state.validationErrors.map((obj, index) => {
+                return <Alert key={"alert_danger_" + index} variant="danger" >
+                    {obj.msg}
+                </Alert >
+            });
+            alert = <Row className="justify-content-md-center">
+                <Col md={5}>
+                    {temp}
+                </Col>
+            </Row>
         }
 
         return (
             <Container>
                 {alert}
-                <Row className="justify-content-md-center">
+                < Row className="justify-content-md-center" >
                     <Col md={5}><Panel handleChange={this.handleChange} data={this.state.userData} registerUser={this.registerUser} /></Col>
-                </Row>
-            </Container>
+                </Row >
+            </Container >
         );
     }
 }
@@ -98,7 +115,7 @@ let Box = (props) => {
             <Form.Row>
                 <Form.Group as={Col} controlId="formGridPassword">
                     <Form.Label>Password</Form.Label>
-                    <Form.Control type="password" name="password"  value={props.data.password} placeholder="Password" onChange={props.handleChange} />
+                    <Form.Control type="password" name="password" value={props.data.password} placeholder="Password" onChange={props.handleChange} />
                 </Form.Group>
             </Form.Row>
 
