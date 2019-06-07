@@ -10,6 +10,7 @@ import {
 } from 'react-bootstrap';
 import axios from 'axios';
 import './register_box.css';
+import { Link, BrowserRouter as Router } from 'react-router-dom';
 
 class RegisterBox extends React.Component {
     constructor(props) {
@@ -41,15 +42,24 @@ class RegisterBox extends React.Component {
         event.preventDefault();
         axios.post('http://localhost:3535/users/register', obj.state.userData, { headers: { "Content-Type": "application/json" } }).then((response) => {
             if (response.status === 201) {
-                obj.setState({ message: 'User Registered Successfully' })
+                let msg = <span>User Registered Successfully. please click <Link to="/login">here</Link> to login</span>
+                obj.setState({ message: msg })
                 obj.setState({ isUserRegistered: true });
                 setTimeout(() => {
-                    obj.setState({ isUserRegistered: false });
-                }, 5000);
+                   // obj.setState({ isUserRegistered: false });
+                }, 3000);
             }
         }).catch((error) => {
-            if (error.response.status === 400) {
+            if (!error.response) {
+                obj.setState({ validationErrors: [{param:'network_error', msg : 'There seems to be some problem with the network connection'}] })
+                setTimeout(() => {
+                    obj.setState({ validationErrors: [] });
+                }, 3000);
+            }else if (error.response.status === 400) {
                 obj.setState({ validationErrors: error.response.data.errors })
+                setTimeout(() => {
+                    obj.setState({ validationErrors: [] });
+                }, 5000);
             }
         }).finally(() => {
             obj.setState({ userData: obj.initialState.userData });
