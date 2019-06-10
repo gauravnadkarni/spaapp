@@ -8,6 +8,7 @@ import {
     Container
 } from 'react-bootstrap';
 import './login_box.css';
+import axios from 'axios'
 
 class LoginBox extends React.Component {
     constructor(props) {
@@ -21,30 +22,26 @@ class LoginBox extends React.Component {
             isUserLoggedIn: false,
             validationErrors: [],
             message: ''
-
         }
-        //this.handleChange = this.handleChange.bind(this);
-        //this.loginUser = this.loginUser.bind(this);
+        this.handleChange = this.handleChange.bind(this);
+        this.loginUser = this.loginUser.bind(this);
     }
 
     handleChange(event) {
         this.setState({ userData: { ...this.state.userData, [event.target.name]: event.target.value } });
     }
 
-    /*registerUser(event) {
+    loginUser(event) {
         let obj = this;
         obj.setState({ isFormSubitted: true });
         event.preventDefault();
-        axios.post('http://localhost:3535/users/register', obj.state.userData, { headers: { "Content-Type": "application/json" } }).then((response) => {
+        axios.post('http://localhost:3535/auth/login', obj.state.userData, { headers: { "Content-Type": "application/json" } }).then((response) => {
             if (response.status === 201) {
-                obj.setState({ message: 'User Registered Successfully' })
-                obj.setState({ isUserRegistered: true });
-                setTimeout(() => {
-                    obj.setState({ isUserRegistered: false });
-                }, 3000);
+                obj.setState({ message: 'User Loggedin Successfully' })
+                obj.setState({ isUserLoggedIn: true });
             }
         }).catch((error) => {
-            if (error.response.status === 400) {
+            if (error.response.status === 400 || error.response.status === 401) {
                 obj.setState({ validationErrors: error.response.data.errors })
                 setTimeout(() => {
                     obj.setState({ validationErrors: [] });
@@ -53,16 +50,20 @@ class LoginBox extends React.Component {
         }).finally(() => {
             obj.setState({ userData: obj.initialState.userData });
         });
-    }*/
+    }
 
     render() {
-        return( 
-            <Container>
+        let component = null;
+        if(this. state.isUserLoggedIn===false){
+            component = <Container>
                 <Row className="justify-content-md-center" >
-                    <Col md={5}><Panel data={this.state.userData}/></Col>
+                    <Col md={5}><Panel data={this.state.userData} loginUser={this.loginUser} handleChange={this.handleChange}/></Col>
                 </Row>
-            </Container>
-        )
+            </Container>;
+        }else{
+            
+        }
+        return component;
     }
 }
 
@@ -71,7 +72,7 @@ let Panel = (props) => {
         <Card>
             <Card.Header>Login</Card.Header>
             <Card.Body>
-                <Box data={props.data}/>
+                <Box data={props.data} loginUser={props.loginUser} handleChange={props.handleChange}/>
             </Card.Body>
         </Card>
     );
@@ -94,9 +95,9 @@ let Box = (props) => {
                 </Form.Group>
             </Form.Row>
 
-            <Button variant="primary" type="submit" onClick={props.registerUser}>
+            <Button variant="primary" type="submit" onClick={props.loginUser}>
                 Submit
-                </Button>
+            </Button>
         </Form>
     );
 };
