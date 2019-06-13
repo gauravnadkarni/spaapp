@@ -9,6 +9,7 @@ import {
 } from 'react-bootstrap';
 import './login_box.css';
 import axios from 'axios'
+import Layout from '../layout/Layout'
 
 class LoginBox extends React.Component {
     constructor(props) {
@@ -36,7 +37,7 @@ class LoginBox extends React.Component {
         obj.setState({ isFormSubitted: true });
         event.preventDefault();
         axios.post('http://localhost:3535/auth/login', obj.state.userData, { headers: { "Content-Type": "application/json" } }).then((response) => {
-            if (response.status === 201) {
+            if (response.status === 200) {
                 obj.setState({ message: 'User Loggedin Successfully' })
                 obj.setState({ isUserLoggedIn: true });
             }
@@ -54,14 +55,14 @@ class LoginBox extends React.Component {
 
     render() {
         let component = null;
-        if(this. state.isUserLoggedIn===false){
+        if(this.state.isUserLoggedIn===false){
             component = <Container>
                 <Row className="justify-content-md-center" >
                     <Col md={5}><Panel data={this.state.userData} loginUser={this.loginUser} handleChange={this.handleChange}/></Col>
                 </Row>
             </Container>;
         }else{
-            
+            component = <Layout/>
         }
         return component;
     }
